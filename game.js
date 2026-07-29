@@ -65,17 +65,23 @@ function resetPipes() {
 }
 
 // ── Clouds (decorative background blobs) ─────
+// Each cloud has a depth `scale` in [0,1].
+//   scale → 0  :  far away  (small, slow, faint)
+//   scale → 1  :  close     (large, fast, more opaque)
 const clouds = [];
 function initClouds() {
   clouds.length = 0;
-  const count = 8;
+  const count = 12;
   for (let i = 0; i < count; i++) {
+    const scale = Math.random();                 // depth factor 0..1
     clouds.push({
-      x: Math.random() * canvas.width,
-      y: Math.random() * (canvas.height * 0.85),
-      w: 80 + Math.random() * 70,
-      h: 38 + Math.random() * 24,
-      speed: 0.3 + Math.random() * 0.4,
+      x:     Math.random() * canvas.width,
+      y:     Math.random() * (canvas.height * 0.88),
+      w:     45 + scale * 95,                   // 45px (far) → 140px (near)
+      h:     22 + scale * 32,                   // 22px (far) →  54px (near)
+      speed: 0.18 + scale * 1.1,               // 0.18 (far) →  1.28 (near)
+      alpha: 0.15 + scale * 0.50,              // 0.15 (far) →  0.65 (near)
+      scale,
     });
   }
 }
@@ -124,8 +130,10 @@ function drawBackground() {
 
 function drawCloud(c) {
   ctx.save();
-  ctx.globalAlpha = 0.82;
-  // Rounded rect blob
+
+  // Use per-cloud alpha for depth/perspective effect
+  ctx.globalAlpha = c.alpha;
+
   const r = Math.min(c.w, c.h) * 0.45;
   ctx.fillStyle = '#ddeef5';
   ctx.beginPath();
@@ -141,16 +149,19 @@ function drawCloud(c) {
   ctx.closePath();
   ctx.fill();
 
-  // Slight sketchy border
-  ctx.globalAlpha = 0.25;
+  // Sketchy border inherits the same alpha
   ctx.strokeStyle = '#aaccdd';
-  ctx.lineWidth   = 2;
+  ctx.lineWidth   = 1.5;
+  ctx.globalAlpha = c.alpha * 0.4;
   ctx.stroke();
+
   ctx.restore();
 }
 
 function drawClouds() {
-  for (const c of clouds) drawCloud(c);
+  // Draw far-away (low scale) clouds first so near ones render on top
+  const sorted = [...clouds].sort((a, b) => a.scale - b.scale);
+  for (const c of sorted) drawCloud(c);
 }
 
 // Draw one pipe segment (rect + cap)
@@ -382,8 +393,15 @@ function updateClouds() {
   for (const c of clouds) {
     c.x -= c.speed;
     if (c.x + c.w < 0) {
-      c.x = canvas.width + 10;
-      c.y = Math.random() * (canvas.height * 0.85);
+      // Recycle off-screen cloud with a fresh random depth
+      const scale = Math.random();
+      c.scale = scale;
+      c.x     = canvas.width + 10;
+      c.y     = Math.random() * (canvas.height * 0.88);
+      c.w     = 45 + scale * 95;
+      c.h     = 22 + scale * 32;
+      c.speed = 0.18 + scale * 1.1;
+      c.alpha = 0.15 + scale * 0.50;
     }
   }
 }
