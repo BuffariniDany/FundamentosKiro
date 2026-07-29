@@ -1,11 +1,12 @@
-# FundamentosKiro
+# Flappy Kiro
 
-Repositorio para aprender Kiro, MCP, Agentic AI y desarrollo asistido por IA.
+Initial folder containing support resources for the Flappy Kiro game.
 
-## Contenido
+## Example UI
 
-- Primeros pasos con Kiro
-- Creación de Specs
-- Model Context Protocol (MCP)
-- Agentes de IA
-- Ejemplos y laboratorios
+![Flappy Kiro UI](img/example-ui.png)
+
+## Resources
+
+- `assets/` - Game audio and sprites
+- `img/` - Screenshots and images
